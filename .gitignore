@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.env
+node_modules/
+dist/
+backend/data/raw/*
+backend/data/processed/*
+backend/artifacts/*
+!backend/data/raw/.gitkeep
+!backend/data/processed/.gitkeep
+!backend/artifacts/.gitkeep
