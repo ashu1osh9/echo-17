@@ -6,6 +6,10 @@ An evidence-first open-source AI forensic lab for historical hydraulic-machine s
 
 **HARD DEADLINE: complete and submit by 31 Oct 2026, 20:00 IST.** P0 end-to-end application must work by 30 Oct, 21:00 IST. The deadline sprint overrides optional later milestones.
 
+## Get started tonight
+
+- [Immediate Windows + Codex quick start](docs/START_HERE_29_OCT.md)
+
 ## Work from the implementation plan
 
 - [Winning-focused build blueprint (START HERE)](docs/WINNING_BLUEPRINT_31_OCT.md)
