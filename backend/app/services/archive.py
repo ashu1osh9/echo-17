@@ -44,7 +44,12 @@ def prediction(cycle_id):
     tab = additional()
     if tab is not None and cycle_id in tab.index:
         result.append(rec(tab, "TabPFN-3.5"))
-    return {"cycle_id": cycle_id, "predictions": result, "ground_truth_hidden": True}
+    row = features().loc[cycle_id]
+    evidence = [{"sensor": sensor, "unit": unit,
+                 **{stat: float(row[f"{sensor}_{stat}"]) for stat in ("mean", "std", "min", "max", "p05", "p95")}}
+                for sensor, (_, unit) in SENSORS.items()]
+    return {"cycle_id": cycle_id, "predictions": result, "ground_truth_hidden": True,
+            "inference_mode": "precomputed from model inference", "feature_evidence": evidence}
 
 
 def get_signals(cycle_id, sensor):

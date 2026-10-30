@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from .config import PROCESSED, ARTIFACTS
+from .prepare import model_features
 
 
 def main():
@@ -11,7 +12,7 @@ def main():
     df = pd.read_csv(PROCESSED / "features.csv").set_index("cycle_id")
     tr = pd.read_csv(ARTIFACTS / "train_ids.csv")["cycle_id"].to_numpy()
     te = pd.read_csv(ARTIFACTS / "test_ids.csv")["cycle_id"].to_numpy()
-    cols = [x for x in df.columns if x not in {"cooler_condition", "stable"}]
+    cols = list(model_features(df).columns)
     clf = TabPFNClassifier()
     clf.fit(df.loc[tr, cols].to_numpy(), df.loc[tr, "cooler_condition"].to_numpy())
     proba = clf.predict_proba(df.loc[te, cols].to_numpy())

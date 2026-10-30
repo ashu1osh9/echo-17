@@ -1,0 +1,24 @@
+import { useMemo, useState } from 'react'
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Search, Database, Waves, Clock3 } from 'lucide-react'
+import type { Cycle, Metadata } from '../api'
+import { cycleName, filterCycles } from '../domain'
+export function Archive({ cycles, meta, opened }: { cycles: Cycle[]; meta: Metadata; opened: number[] }) {
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const filtered = useMemo(() => filterCycles(cycles, query, filter, opened), [cycles, query, filter, opened])
+  const pageCount = Math.max(1, Math.ceil(filtered.length / 12))
+  const currentPage = Math.min(page, pageCount)
+  const visible = filtered.slice((currentPage - 1) * 12, currentPage * 12)
+  return <>
+    <section className="heading archive-hero"><div><div className="eyebrow amber"><span className="line" />THE HISTORICAL MACHINE ARCHIVE</div><h1>Every signal has<br />a <em>story to tell.</em></h1><p>Recover a recording. Inspect the evidence.<br />Let the model make its call—then uncover the truth.</p><a className="primary" href={cycles[0] ? `#/investigation/${cycles[0].id}` : '#/archive'}>Enter signal laboratory <ArrowUpRight size={17} /></a></div><div className="archive-emblem" aria-hidden="true"><div className="orbital orbit-one" /><div className="orbital orbit-two" /><div className="emblem-core"><RadioMark /><small>ARCHIVED<br />NOT FORGOTTEN</small></div><span className="orbit-label">ECHO / 17</span></div></section>
+    <div className="archive-stats"><div><Database size={20} /><span><b>{cycles.length.toLocaleString()}</b><small>HELD-OUT RECORDINGS</small></span></div><div><Waves size={20} /><span><b>{meta.sensors.length} channels</b><small>ORIGINAL SENSOR EVIDENCE</small></span></div><div><Clock3 size={20} /><span><b>60 seconds</b><small>PER EXPERIMENTAL CYCLE</small></span></div><p>Real measurements.<br />No simulated readings.</p></div>
+    <section className="archive-section" aria-labelledby="archive-title"><div className="section-heading"><div><div className="panel-label">01 / SELECT A CASE</div><h2 id="archive-title">Machine recordings <span className="tag">UCI 447</span></h2></div><span className="muted small">Labels concealed until reveal</span></div>
+      <div className="archive-toolbar"><div className="search"><Search size={18} /><input aria-label="Search cycle ID" placeholder="Search cycle ID…" value={query} onChange={e => { setQuery(e.target.value); setPage(1) }} />{query && <button onClick={() => { setQuery(''); setPage(1) }} aria-label="Clear search">×</button>}</div><label className="filter-label">View<select aria-label="Filter recordings" value={filter} onChange={e => { setFilter(e.target.value); setPage(1) }}><option value="all">All recordings</option><option value="opened">Opened this session</option><option value="unopened">Unopened this session</option></select></label></div>
+      <div className="archive-grid">{visible.map(c => <a className="case-card" href={`#/investigation/${c.id}`} key={c.id}><div className="case-top"><span className="case-symbol"><Waves size={20} /></span><span className="case-code">UCI / {String(c.id).padStart(4, '0')}</span><ArrowUpRight className="case-arrow" size={17} /></div><h3>{cycleName(c.id)}</h3><p>Hydraulic test rig recording</p><div className="case-details"><span>60 s <span className="separator">/</span> {meta.sensors.length} sensors</span><span className="case-state">{opened.includes(c.id) ? 'OPENED' : 'HELD OUT'}</span></div><div className="case-link">Open investigation <ArrowRight size={15} /></div></a>)}</div>
+      {!visible.length && <div className="empty panel"><Search size={28} /><h3>No recordings match.</h3><p>Try another cycle ID or change the session filter.</p><button className="secondary" onClick={() => { setQuery(''); setFilter('all'); setPage(1) }}>Clear filters</button></div>}
+      <div className="pagination"><span role="status">{filtered.length ? `${(currentPage - 1) * 12 + 1}–${Math.min(currentPage * 12, filtered.length)}` : '0'} of {filtered.length} recordings</span><div><button className="icon-button" aria-label="Previous page" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}><ChevronLeft size={18} /></button><span>Page {currentPage} / {pageCount}</span><button className="icon-button" aria-label="Next page" disabled={currentPage >= pageCount} onClick={() => setPage(currentPage + 1)}><ChevronRight size={18} /></button></div></div>
+    </section>
+  </>
+}
+function RadioMark() { return <svg width="84" height="70" viewBox="0 0 84 70"><g fill="none" stroke="currentColor" strokeWidth="2"><path d="M32 19a23 23 0 0 0 0 32M23 10a36 36 0 0 0 0 50M52 19a23 23 0 0 1 0 32M61 10a36 36 0 0 1 0 50" /><circle cx="42" cy="35" r="6" /><path d="M42 41v23" /></g></svg> }

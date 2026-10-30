@@ -2,7 +2,7 @@
 
 An evidence-first open-source AI forensic lab for historical hydraulic-machine sensor recordings. Real data only: no seeded fake predictions or invented signal recordings.
 
-**Status: functional starter, not a finished hackathon submission.** On 29 Oct 2026, 4 backend smoke tests passed locally. The full real-data pipeline, TabPFN GPU runtime, frontend build, Gemma generation, and hosting have NOT yet been verified. Includes a reproducible Random Forest pipeline, optional TabPFN inference, a FastAPI backend, and a React replay/reveal UI. Gemma is optional; without Ollama the backend returns a clearly labeled deterministic summary.
+**Status: Missions 1–2 verified through automated local integration; focused browser QA complete; submission incomplete.** Real UCI data: 2,205 aligned cycles and 36 predictors. Preserved Random Forest accuracy **0.9931972789115646**, macro-F1 **0.9932124418669938**, on 441 held-out cycles (3 errors). Frontend production build, **11 frontend tests**, **12 backend tests**, **44 HTTP checks through the frontend proxy** and **9 production asset/proxy checks** passed. API predictions are **precomputed from model inference**. Archive, cycle 735 diagnosis/reveal, full replay with a training reference, evaluation and mobile/laptop layouts were inspected in Chrome. See [actual screenshots and focused QA results](docs/VISUAL_QA.md). TabPFN, actual Gemma generation and hosting remain unverified. See [observed model results](docs/MODEL_RESULTS.md) and [commands/run evidence](docs/RUN_LOG.md).
 
 **HARD DEADLINE: complete and submit by 31 Oct 2026, 20:00 IST.** P0 end-to-end application must work by 30 Oct, 21:00 IST. The deadline sprint overrides optional later milestones.
 
@@ -41,6 +41,8 @@ The downloader fetches the **public UCI dataset** (~73 MB compressed; extracted 
 
 API available at `http://127.0.0.1:8000/docs`.
 
+This machine's original `.venv` points to a missing Python 3.12 installation. The verified environment uses Python 3.11.5 from Anaconda in `backend/.venv/mission1`. From `backend`, run `.\.venv\mission1\Scripts\python.exe -m uvicorn app.main:app --reload`. With the API running, `.\.venv\mission1\Scripts\python.exe -m ml.verify_api` checks actual HTTP results and saves `artifacts/api_verification.json`.
+
 Frontend in a second terminal:
 
 ```powershell
@@ -50,6 +52,21 @@ npm run dev
 ```
 
 Open `http://localhost:5173`. The UI displays **no sample data** before ML artifacts exist.
+
+The configured local address is `http://127.0.0.1:5173`. Routes are `#/archive`, `#/investigation/{held_out_cycle_id}` and `#/evaluation`; browser refresh preserves the route. Search all 441 held-out recordings, filter by opened/unopened status for the current session, and paginate. The laboratory supports all six prepared channels, play/pause/reset, scrubbing and 0.25×–4× replay. Only measured preview points at supplied timestamps are revealed. Switching sensors resets replay/overlay; switching cycles clears predictions, reports and revealed labels. Ghost differences are computed on aligned displayed samples and are explicitly descriptive.
+
+For production preview and checks (Node **22.17+** for the test runner), keep the existing backend running, then in `frontend`:
+
+```powershell
+npm ci
+npm run build
+npm run preview
+# In another terminal, with the API and preview running:
+npm test
+npm run check:preview
+```
+
+`npm test` requires the real Mission 1 artifacts and the API on port 8000. React component tests use real HTTP data; only chart layout is stubbed. They do not replace browser layout/accessibility inspection. `check:preview` verifies served asset hashes and same-origin API responses on port 5173. The built frontend needs an API reverse proxy; local dev/preview configure it automatically. No deployment was performed.
 
 ## Ghost Signature: real training reference overlay
 
@@ -90,6 +107,9 @@ TabPFN code and weights have distinct licenses; see [TabPFN](https://github.com/
 - [x] FastAPI endpoints / no fake data
 - [x] Frontend investigation workflow
 - [x] Optional Gemma integration with fallback
-- [ ] Real dataset download and model run on your machine or Colab
-- [ ] Real recorded evaluation metrics and screenshots
+- [x] Real dataset download and local Random Forest run (see run log)
+- [x] Real recorded baseline evaluation metrics (see model results)
+- [x] Frontend production build and automated real-data investigation
+- [x] Actual archive dashboard/search inspection and screenshots (see manual QA document)
+- [x] Focused cycle 735 browser diagnosis/reveal, complete replay/Ghost, evaluation and 390-pixel/1366×768 layout checks ([evidence](docs/VISUAL_QA.md))
 - [ ] Public deployment and full DEV.to submission
