@@ -1,0 +1,8 @@
+# Exact versions verified locally; no TabPFN, torch, model weights or training at runtime.
+fastapi==0.162.0
+uvicorn==0.54.0
+pydantic==2.14.2
+numpy==2.4.6
+pandas==2.3.3
+scikit-learn==1.9.1
+requests==2.34.2

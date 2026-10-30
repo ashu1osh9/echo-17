@@ -1,0 +1,25 @@
+# PREPARED ONLY. Creating these services requires the owner's explicit authorization.
+services:
+  - type: web
+    name: echo17-forensic-demo
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/ready
+    envVars:
+      - key: ECHO_REPORT_MODE
+        value: precomputed
+      - key: ECHO_PUBLIC_MODEL_POLICY
+        value: rf_only
+      - key: ECHO_BUNDLE_URL
+        sync: false
+      - key: ECHO_BUNDLE_SHA256
+        value: 96dc5038f7526cec9aacdeb27884c0418520a5461f73a1b2ef6b455ebb9d04cd
+      - key: ECHO_CORS_ORIGINS
+        value: ""
+      - key: OMP_NUM_THREADS
+        value: "1"
+      - key: OPENBLAS_NUM_THREADS
+        value: "1"

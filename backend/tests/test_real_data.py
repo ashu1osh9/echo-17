@@ -43,8 +43,8 @@ def test_real_split_and_metrics(real_data):
 def test_all_routes_with_real_cycles(real_data, monkeypatch):
     frame, predictions = real_data
     def unavailable(*args, **kwargs):
-        raise requests.ConnectionError("Ollama deliberately disabled for fallback test")
-    monkeypatch.setattr(investigator.requests, "post", unavailable)
+        raise investigator.gemma_service.GemmaUnavailable("ollama_unreachable")
+    monkeypatch.setattr(investigator.gemma_service, "generate_plan", unavailable)
     client = TestClient(app)
     assert client.get("/api/health").json() == {"ok": True, "data_ready": True}
     assert len(client.get("/api/meta").json()["sensors"]) == 6

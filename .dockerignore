@@ -1,0 +1,16 @@
+.git
+.agents
+.codex
+.aws
+**/.venv
+**/node_modules
+**/dist
+**/.test-build
+**/__pycache__
+**/.pytest_cache
+**/.runtime
+**/*.log
+**/.env*
+backend/artifacts
+backend/data
+docs/screenshots

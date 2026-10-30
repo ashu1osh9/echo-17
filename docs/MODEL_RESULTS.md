@@ -43,4 +43,8 @@ These are uncalibrated model probabilities, not failure risks. The random split 
 
 Run environment: Python 3.11.5, NumPy 2.4.6, pandas 2.3.3, scikit-learn 1.9.1, joblib 1.6.0. Saved `baseline_metrics.json` includes seed, timestamp, versions, class counts, feature columns, test IDs, parameters, class-wise metrics and wrong cycle IDs. `baseline_predictions.csv` saves actual/predicted conditions and class probabilities. Generated files and fitted model remain gitignored.
 
-TabPFN has not been run; there is no foundation-model comparison yet. Gemma was unavailable in HTTP checks; reports were explicitly labeled deterministic fallback. Frontend workflow and public deployment remain unverified.
+## Offline research boundary
+
+The TabPFN experiment and paired comparison were executed and validated locally on the same saved split. Their numerical results, per-cycle predictions, probabilities and full historical narrative are retained in ignored research artifacts and `backend/artifacts/release-private/before-rf-gate/`. No result is being replaced or retrained.
+
+The hosted release contains RF outputs and RF-grounded Gemma reports only. No TabPFN output is included in its bundle, evaluation API, comparison API or diagnosis selector. See the release handoff and official model terms before publishing any restricted research evidence.

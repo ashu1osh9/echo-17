@@ -3,6 +3,16 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 .env
+.env.*
+!.env.example
+*.log
+*.pem
+*.key
+.agents/
+.codex/
+.aws/
+.runtime/
+release-dist/
 node_modules/
 dist/
 *.tsbuildinfo

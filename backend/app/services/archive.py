@@ -1,4 +1,5 @@
 import json
+import os
 from functools import lru_cache
 import numpy as np
 import pandas as pd
@@ -14,10 +15,24 @@ def baseline():
     return pd.read_csv(p).set_index("cycle_id")
 
 
-@lru_cache(maxsize=1)
+def tabpfn_state():
+    if os.environ.get("ECHO_PUBLIC_MODEL_POLICY") == "rf_only":
+        return {"available": False, "status": "restricted", "detail": "Public demo serves Random Forest only. TabPFN remains an offline research experiment; public-output permission is unconfirmed."}, None, None
+    paths = [ARTIFACTS / name for name in ("tabpfn_predictions.csv", "tabpfn_metrics.json")]
+    if not any(p.exists() for p in paths):
+        return {"available": False, "status": "missing", "detail": "No validated TabPFN GPU outputs imported."}, None, None
+    try:
+        from ml.colab_bundle import read_validated_results
+        metric, frame = read_validated_results(ARTIFACTS.parent)
+        return {"available": True, "status": "validated", "model": metric["model"],
+                "model_version": metric["model_version"], "inference_mode": metric["inference_mode"]}, metric, frame
+    except (ValueError, KeyError, TypeError, OSError):
+        return {"available": False, "status": "invalid", "detail": "TabPFN outputs rejected by provenance, split or prediction validation."}, None, None
+
+
 def additional():
-    p = ARTIFACTS / "tabpfn_predictions.csv"
-    return pd.read_csv(p).set_index("cycle_id") if p.exists() else None
+    _, _, frame = tabpfn_state()
+    return frame.set_index("cycle_id") if frame is not None else None
 
 
 @lru_cache(maxsize=1)
@@ -41,15 +56,16 @@ def prediction(cycle_id):
                 "confidence": float(row["confidence"]),
                 "probabilities": {str(k): float(row[f"p_{k}"]) for k in LABELS if f"p_{k}" in row.index}}
     result = [rec(baseline(), "Random Forest")]
-    tab = additional()
-    if tab is not None and cycle_id in tab.index:
-        result.append(rec(tab, "TabPFN-3.5"))
+    state, metric, tab = tabpfn_state()
+    if tab is not None:
+        result.append(rec(tab.set_index("cycle_id"), metric["model"]))
     row = features().loc[cycle_id]
     evidence = [{"sensor": sensor, "unit": unit,
                  **{stat: float(row[f"{sensor}_{stat}"]) for stat in ("mean", "std", "min", "max", "p05", "p95")}}
                 for sensor, (_, unit) in SENSORS.items()]
     return {"cycle_id": cycle_id, "predictions": result, "ground_truth_hidden": True,
-            "inference_mode": "precomputed from model inference", "feature_evidence": evidence}
+            "inference_mode": "precomputed from model inference", "feature_evidence": evidence,
+            "tabpfn_status": state}
 
 
 def get_signals(cycle_id, sensor):
@@ -69,10 +85,23 @@ def get_signals(cycle_id, sensor):
 
 def evaluation():
     output = []
-    for name in ("baseline_metrics.json", "tabpfn_metrics.json"):
+    for name in ("baseline_metrics.json",):
         p = ARTIFACTS / name
         if p.exists():
             output.append(json.loads(p.read_text()))
     if not output:
         raise HTTPException(503, "Train baseline model first")
+    _, metric, _ = tabpfn_state()
+    if metric is not None:
+        output.append(metric)
     return output
+
+
+def comparison():
+    state, metric, candidate = tabpfn_state()
+    if candidate is None:
+        return {"available": False, "tabpfn_status": state, "comparison": None}
+    from ml.comparison import compare_predictions
+    from ml.experiment import load_inputs
+    result = compare_predictions(baseline().reset_index(), candidate, load_inputs(ARTIFACTS.parent))
+    return {"available": True, "tabpfn_status": state, "comparison": result}

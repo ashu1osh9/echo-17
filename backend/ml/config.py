@@ -1,9 +1,11 @@
 from pathlib import Path
+import os
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
-PROCESSED = ROOT / "data" / "processed"
-ARTIFACTS = ROOT / "artifacts"
+DATA_ROOT = Path(os.environ.get("ECHO_DATA_ROOT", str(ROOT))).resolve()
+PROCESSED = DATA_ROOT / "data" / "processed"
+ARTIFACTS = DATA_ROOT / "artifacts"
 SENSORS = {
     "PS1": (100, "bar"),
     "FS1": (10, "l/min"),

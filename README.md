@@ -1,115 +1,82 @@
-# ECHO-17 — The Machine That Remembers
+# ECHO-17 - The Machine That Remembers
 
-An evidence-first open-source AI forensic lab for historical hydraulic-machine sensor recordings. Real data only: no seeded fake predictions or invented signal recordings.
+A forensic lab for real hydraulic-machine recordings: replay measured signals, compare a TRAIN reference, inspect a saved Random Forest prediction, request a genuine Gemma evidence report, then deliberately reveal the recorded condition.
 
-**Status: Missions 1–2 verified through automated local integration; focused browser QA complete; submission incomplete.** Real UCI data: 2,205 aligned cycles and 36 predictors. Preserved Random Forest accuracy **0.9931972789115646**, macro-F1 **0.9932124418669938**, on 441 held-out cycles (3 errors). Frontend production build, **11 frontend tests**, **12 backend tests**, **44 HTTP checks through the frontend proxy** and **9 production asset/proxy checks** passed. API predictions are **precomputed from model inference**. Archive, cycle 735 diagnosis/reveal, full replay with a training reference, evaluation and mobile/laptop layouts were inspected in Chrome. See [actual screenshots and focused QA results](docs/VISUAL_QA.md). TabPFN, actual Gemma generation and hosting remain unverified. See [observed model results](docs/MODEL_RESULTS.md) and [commands/run evidence](docs/RUN_LOG.md).
+**Release candidate: RF + Gemma. Not pushed, deployed or submitted.** TabPFN remains an offline reproducible research experiment. Its weights, predictions, scores, probabilities and TabPFN-grounded reports are excluded from the hosted payload until permission is confirmed. Full local research evidence is preserved in ignored artifacts and a checksum-recorded private document snapshot.
 
-**HARD DEADLINE: complete and submit by 31 Oct 2026, 20:00 IST.** P0 end-to-end application must work by 30 Oct, 21:00 IST. The deadline sprint overrides optional later milestones.
+- [Exact publication manifest and release gate](docs/PUBLICATION_MANIFEST.md)
+- [Render Blueprint and approval handoff](docs/RELEASE_HANDOFF.md)
+- [Current English article](docs/DEV_SUBMISSION.md)
+- [Real media inventory](docs/RELEASE_MEDIA.md) and [60-90 second storyboard](docs/DEMO_SCRIPT.md)
+- [Verified checks](docs/RUN_LOG.md), [RF results](docs/MODEL_RESULTS.md), [credits/licenses](THIRD_PARTY_NOTICES.md)
 
-## Get started tonight
+**Hard internal deadline: 31 October 2026, 20:00 IST; code freeze 15:00 IST.** The owner must revoke/rotate the previously exposed Prior Labs key. No credential is required by the public app.
 
-- [Immediate Windows + Codex quick start](docs/START_HERE_29_OCT.md)
+![Genuine earlier ECHO-17 archive screenshot](docs/screenshots/polish-archive.png)
 
-## Work from the implementation plan
+This historical RF screenshot is genuine. Current Gemma/report and hosted/mobile captures remain pending because browser automation is unavailable. No generated screenshot is used.
 
-- [Winning-focused build blueprint (START HERE)](docs/WINNING_BLUEPRINT_31_OCT.md)
-- [31 Oct hard-deadline sprint](docs/31_OCT_DEADLINE_SPRINT.md)
+## What is actually measured?
 
-- [Full implementation roadmap](docs/IMPLEMENTATION_PLAN.md)
-- [Live task checklist](docs/TASK_CHECKLIST.md)
-- [Codex master prompt](docs/CODEX_MASTER_PROMPT.md)
-- [Coding agent guardrails](AGENTS.md)
+UCI 447 contains 2,205 aligned 60-second experimental cycles. This implementation uses PS1, FS1, TS1, TS2, VS1 and EPS1, extracting six statistics per channel into 36 predictors. Cycle IDs, all condition labels and stability are excluded from X. Preview charts select original measured samples using supplied timestamps; they do not synthesize a waveform.
 
-## Architecture
+The saved stratified split is 1,764 TRAIN / 441 TEST, seed 42. Random Forest: 250 trees, balanced subsample class weights. Actual held-out accuracy **0.9931972789115646**, macro-F1 **0.9932124418669938**, **438 correct / 3 incorrect**. All mistakes (cycles 2, 735, 1467) remain inspectable. Probabilities are uncalibrated, not failure risks.
 
-UCI 447 archive → sensor-statistics features and 240-point replay previews → stratified hold-out → Random Forest (CPU) / TabPFN-3.5 (GPU recommended) → saved held-out predictions → FastAPI → React replay, evidence-only Ghost Signature overlay, reveal and evaluation. Optional Ollama/Gemma report.
+Cycle 735: RF predicts near failure (3%) at 50.4% model probability; Reveal displays recorded reduced efficiency (20%). Cycle 5 is a correct baseline case. These are cooler-condition classifications on a historical test rig, not future failure times or maintenance recommendations.
 
-## Setup: Windows PowerShell (Python 3.11/3.12 recommended)
+## Architecture and public-mode boundary
+
+UCI measurements -> sensor statistics and real previews -> saved RF predictions -> FastAPI -> React/TypeScript/Recharts replay, Ghost, diagnosis, Reveal and evaluation.
+
+Ghost Signature selects an actual full-cooler-efficiency TRAIN recording with train-only standardization. Held-out labels never choose the reference. Other reference components may differ; waveform differences do not establish physical causes.
+
+Local Gemma 3 1B through Ollama selects supplied evidence IDs and an uncertainty framing. Pydantic validates the plan; the backend renders every numerical statement from source evidence. Recorded target labels never enter prompts. Invalid/unavailable generation uses an explicit non-LLM fallback.
+
+Public configuration sets `ECHO_PUBLIC_MODEL_POLICY=rf_only` and `ECHO_REPORT_MODE=precomputed`. It serves all 441 RF diagnoses and four genuine RF-grounded Gemma reports (cycles 5, 735, 2, 1467), clearly labeled precomputed. Other cycles receive an honest deterministic fallback. No live LLM/GPU inference occurs on the public server. TabPFN endpoints/selector/results are suppressed even if restricted files are accidentally copied.
+
+## Reuse this prepared workspace
+
+Do not download, regenerate features or retrain RF unnecessarily. From `backend`:
 
 ```powershell
-cd backend
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python -m ml.download_data
-python -m ml.prepare
-python -m ml.train_baseline
-python -m uvicorn app.main:app --reload
+& ./.venv/mission1/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-The downloader fetches the **public UCI dataset** (~73 MB compressed; extracted files much larger) on first run. It requires Internet access. If download fails, manually obtain [UCI 447](https://archive.ics.uci.edu/dataset/447/condition+monitoring+of+hydraulic+systems), extract the `.txt` files into `backend/data/raw`, and resume with `python -m ml.prepare`.
-
-API available at `http://127.0.0.1:8000/docs`.
-
-This machine's original `.venv` points to a missing Python 3.12 installation. The verified environment uses Python 3.11.5 from Anaconda in `backend/.venv/mission1`. From `backend`, run `.\.venv\mission1\Scripts\python.exe -m uvicorn app.main:app --reload`. With the API running, `.\.venv\mission1\Scripts\python.exe -m ml.verify_api` checks actual HTTP results and saves `artifacts/api_verification.json`.
-
-Frontend in a second terminal:
+From `frontend`:
 
 ```powershell
-cd frontend
-npm install
+npm ci --include=dev
+npm run build
 npm run dev
 ```
 
-Open `http://localhost:5173`. The UI displays **no sample data** before ML artifacts exist.
+Local research UI: `http://127.0.0.1:5173`. API: `http://127.0.0.1:8000/docs`. Hash routes: `#/archive`, `#/investigation/735`, `#/evaluation`. Local live Gemma setup is in [GEMMA_INVESTIGATOR.md](docs/GEMMA_INVESTIGATOR.md). This machine's verified Python environment is `backend/.venv/mission1`; its older outer venv is broken.
 
-The configured local address is `http://127.0.0.1:5173`. Routes are `#/archive`, `#/investigation/{held_out_cycle_id}` and `#/evaluation`; browser refresh preserves the route. Search all 441 held-out recordings, filter by opened/unopened status for the current session, and paginate. The laboratory supports all six prepared channels, play/pause/reset, scrubbing and 0.25×–4× replay. Only measured preview points at supplied timestamps are revealed. Switching sensors resets replay/overlay; switching cycles clears predictions, reports and revealed labels. Ghost differences are computed on aligned displayed samples and are explicitly descriptive.
+RF-only public-mode preview is on `http://127.0.0.1:8001` after installing the separate RF bundle. These are localhost URLs, not a public deployment. See the handoff for exact commands, checksum and restart settings.
 
-For production preview and checks (Node **22.17+** for the test runner), keep the existing backend running, then in `frontend`:
+## Fresh experiment and offline research
+
+For a fresh checkout, use Python 3.11/3.12, create a venv, install `backend/requirements.txt`, then run `python -m ml.download_data`, `python -m ml.prepare`, and `python -m ml.train_baseline` from `backend`. These commands are for missing initial artifacts, not for replacing this workspace's preserved experiment.
+
+TabPFN uses the same saved TRAIN/TEST IDs. Its Colab workflow and provenance validation remain in source; see [TABPFN_HANDOFF.md](docs/TABPFN_HANDOFF.md). Actual results are retained locally. This release does not distribute or display them. Publication of those results requires review of the accepted participant terms; precomputation is not a license exemption.
+
+## Verification
+
+With the real data and local API running:
 
 ```powershell
-npm ci
-npm run build
-npm run preview
-# In another terminal, with the API and preview running:
-npm test
-npm run check:preview
+# backend
+& ./.venv/mission1/Scripts/python.exe -m pytest -q
+# frontend
+npm.cmd test
+npm.cmd run build
+npm.cmd run check:preview
 ```
 
-`npm test` requires the real Mission 1 artifacts and the API on port 8000. React component tests use real HTTP data; only chart layout is stubbed. They do not replace browser layout/accessibility inspection. `check:preview` verifies served asset hashes and same-origin API responses on port 5173. The built frontend needs an API reverse proxy; local dev/preview configure it automatically. No deployment was performed.
+Tests use genuine local artifacts; only chart layout is stubbed. Public-mode HTTP checks use `ml.verify_api --rf-only`. Exact current results, warnings and commands are in the run log. Render configuration is prepared only; no external URL or DEV entry is claimed.
 
-## Ghost Signature: real training reference overlay
+## Attribution and limits
 
-The backend endpoint `GET /api/ghost/{cycle_id}?sensor=PS1` selects a **real** training cycle with full cooler efficiency and overlays its measured signal against the held-out test cycle. Reference matching uses train-split-only standardization; no held-out target labels are used. Other components may not be healthy. Similarity is descriptive, not a fault probability or a causal diagnosis.
+Helwig, Pignanelli and Schuetze (2015), [UCI 447 / DOI 10.24432/C5CW21](https://doi.org/10.24432/C5CW21), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Changes: six-channel summaries and measured downsampled previews. ECHO-17 source is MIT; dataset, model, output, font and dependency terms remain separate. No restricted checkpoint or weight is redistributed. [Full notices](THIRD_PARTY_NOTICES.md).
 
-## TabPFN-3.5 (optional, run on Colab GPU)
-
-Either open `notebooks/tabpfn_colab.ipynb` on a Colab GPU runtime, or run the following from `backend` in an environment with TabPFN installed:
-
-```bash
-pip install tabpfn
-python -m ml.train_tabpfn
-```
-
-TabPFN checkpoints download on first use and may require acknowledging the model terms. Its weights have a **separate non-commercial license**; confirm its terms before public deployment. This project does not bundle TabPFN weights or any generated commercial inference service.
-
-## Gemma (optional, CPU works but may be slow)
-
-Install Ollama locally and run `ollama pull gemma3:1b`. Make sure Ollama is running. The API uses `OLLAMA_URL` (default: `http://127.0.0.1:11434`) and `OLLAMA_MODEL` (default: `gemma3:1b`). A deterministic evidence summary is returned if Ollama is unavailable; the UI labels its source accurately. For a live deployment, run an available authorized inference service or disable this optional enhancement.
-
-## What is actually evaluated?
-
-The prediction task is **cooler condition classification** (`3`, `20`, `100`) from actual sensor recordings. The fifth profile column (stability flag) and **all targets** are excluded from model features. Train/test separation is stratified and reproducible (`random_state=42`). Current random splitting tests interpolation within this experimental dataset—not performance on unseen machines, not remaining-useful-life prediction, and not safety-critical fault determination. For a stronger paper, compare with a chronological/block split.
-
-The archive shown in the UI contains held-out evaluation cycles, so you can reveal their recorded labels and audit model predictions. Files in `backend/artifacts/` are only generated by actual model executions.
-
-## Data and licenses
-
-UCI Condition Monitoring of Hydraulic Systems — Helwig, Pignanelli, Schütze (2015), DOI [10.24432/C5CW21](https://doi.org/10.24432/C5CW21), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Raw dataset is downloaded by the user, not redistributed in this ZIP.
-
-TabPFN code and weights have distinct licenses; see [TabPFN](https://github.com/PriorLabs/TabPFN). Check the Gemma license for use of selected model. Project code: MIT license in `LICENSE`.
-
-## Build status
-
-- [x] Dataset downloader / parser
-- [x] Feature engineering / reproducible baseline
-- [x] Model prediction exports / TabPFN script
-- [x] FastAPI endpoints / no fake data
-- [x] Frontend investigation workflow
-- [x] Optional Gemma integration with fallback
-- [x] Real dataset download and local Random Forest run (see run log)
-- [x] Real recorded baseline evaluation metrics (see model results)
-- [x] Frontend production build and automated real-data investigation
-- [x] Actual archive dashboard/search inspection and screenshots (see manual QA document)
-- [x] Focused cycle 735 browser diagnosis/reveal, complete replay/Ghost, evaluation and 390-pixel/1366×768 layout checks ([evidence](docs/VISUAL_QA.md))
-- [ ] Public deployment and full DEV.to submission
+The random cycle split includes correlated experiments from one rig. It does not establish unseen-machine generalization, remaining useful life, calibrated failure probabilities or industrial safety. Fresh desktop/mobile visual QA, real video, signed-in challenge access, owner publication approval and actual deployed URL checks remain release gates. Any post-deadline commits must be identified here as required by the contest rules.
